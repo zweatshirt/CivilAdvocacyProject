@@ -2,5 +2,6 @@
     <string name="app_name">Civil Advocacy</string>
     <string name="api"><u>Google Civic Information API</u></string>
     <string name="deniedText">Location permission was denied. Please search a location or allow permission.</string>
+    <string name="addressNotFound">Nothing Found</string>
     <string name="enterAddress">Enter An Address:</string>
 </resources>
