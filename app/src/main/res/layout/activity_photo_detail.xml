@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    tools:context=".OfficialActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".OfficialActivity">
+
+        <TextView
+            android:id="@+id/officialLocationView"
+            android:layout_width="match_parent"
+            android:layout_height="34dp"
+            android:background="@color/teal"
+            android:text="Location"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/politicianImg"
+            android:layout_width="396dp"
+            android:layout_height="480dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.466"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/detailNameView"
+            app:srcCompat="@drawable/brokenimage" />
+
+        <ImageView
+            android:id="@+id/partyImg"
+            android:layout_width="70dp"
+            android:layout_height="67dp"
+            app:layout_constraintBottom_toBottomOf="@+id/politicianImg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/officialLocationView"
+            app:layout_constraintVertical_bias="1.0"
+            app:srcCompat="@drawable/dem_logo" />
+
+        <TextView
+            android:id="@+id/detailPositionView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Position"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/officialLocationView" />
+
+        <TextView
+            android:id="@+id/detailNameView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Name"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/detailPositionView" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
