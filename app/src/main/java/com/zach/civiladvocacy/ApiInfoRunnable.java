@@ -1,8 +1,11 @@
 package com.zach.civiladvocacy;
 
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,10 +85,10 @@ public class ApiInfoRunnable implements Runnable {
         try {
             JSONObject allInfo = new JSONObject(result);
 
-            String normalizedLine1;
-            String normalizedCity;
-            String normalizedState;
-            String normalizedZip;
+            String normalizedLine1 = null;
+            String normalizedCity = null;
+            String normalizedState = null;
+            String normalizedZip = null;
             JSONObject normalizedInput = allInfo.getJSONObject("normalizedInput");
             if (!normalizedInput.getString("line1").isEmpty()) {
                 normalizedLine1 = normalizedInput.getString("line1");
@@ -99,9 +102,15 @@ public class ApiInfoRunnable implements Runnable {
             if (!normalizedInput.getString("zip").isEmpty()) {
                 normalizedZip = normalizedInput.getString("zip");
             }
-//            main.runOnUiThread(() -> {
-//                main.updateLocation(normalizedLine1, normalizedCity, normalizedState, normalizedZip);
-//            });
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                String finalNormalizedLine = normalizedLine1;
+                String finalNormalizedCity = normalizedCity;
+                String finalNormalizedState = normalizedState;
+                String finalNormalizedZip = normalizedZip;
+                main.runOnUiThread(() -> {
+                    main.updateLocation(finalNormalizedLine, finalNormalizedCity, finalNormalizedState, finalNormalizedZip);
+                });
+            }
 
             JSONArray officials = allInfo.getJSONArray("officials");
             JSONArray offices = allInfo.getJSONArray("offices");
@@ -124,35 +133,54 @@ public class ApiInfoRunnable implements Runnable {
                     JSONObject official = (JSONObject) officials.get(index);
 
                     String name = official.getString("name");
-
-                    JSONArray addresses = official.getJSONArray("address");
-                    JSONObject  address = (JSONObject) addresses.get(0);
-                    String line = buildLine(address);
+                    String line = "";
+                    String city = "";
+                    String state = "";
+                    String zip = "";
+                    if (official.has("address")) {
+                        JSONArray addresses = official.getJSONArray("address");
+                        JSONObject  address = (JSONObject) addresses.get(0);
+                        line = buildLine(address);
+                        city = address.getString("city");
+                        state = address.getString("state");
+                        zip = address.getString("zip");
+                    }
 
                     // party
-                    String party  = official.getString("party");
+                    String party;
+                    if (official.has("party")) {
+                        party = official.getString("party");
+                    }
+                    else party = "Unknown";
 
                     // parse for phone
-                    JSONArray phones = official.getJSONArray("phones");
                     String phone = "";
-                    if (!(phones.length() == 0)) {
+                    if (official.has("phones")) {
+                        JSONArray phones = official.getJSONArray("phones");
+                        if (!(phones.length() == 0)) {
                             phone = (String) phones.get(0);
+                        }
                     }
 
                     // parse for url
-                    JSONArray urls = official.getJSONArray("urls");
                     String url = "";
-                    if (!(urls.length() == 0)) {
-                        url = (String) urls.get(0);
+                    if (official.has("urls")) {
+                        JSONArray urls = official.getJSONArray("urls");
+                        if (!(urls.length() == 0)) {
+                            url = (String) urls.get(0);
+                        }
                     }
 
                     // parse for email
-                    JSONArray emails = official.getJSONArray("emails");
                     String email = "";
-                    if (!(email.length() == 0)) {
-                        email = (String) emails.get(0);
+                    if (official.has("emails")) {
+                        JSONArray emails = official.getJSONArray("emails");
+                        if (!(emails.length() == 0)) {
+                            email = (String) emails.get(0);
+                        }
                     }
 
+                    // photoUrl
                     String photoUrl = "";
                     if (official.has("photoUrl")) {
                         photoUrl = official.getString("photoUrl");
@@ -161,17 +189,21 @@ public class ApiInfoRunnable implements Runnable {
                     String facebook = "";
                     String twitter = "";
                     String youtube = "";
-                    JSONArray channels = official.getJSONArray("channels");
-                    for (int l = 0; l < channels.length(); l++) {
-                        JSONObject channel = (JSONObject) channels.get(i);
-                        if (channel.getString("type").equals("Facebook")) {
-                            facebook  = channel.getString("id");
+                    // play it safe
+                    if (official.has("channels")) {
+
+                        JSONArray channels = official.getJSONArray("channels");
+                        for (int l = 0; l < channels.length(); l++) {
+                            JSONObject channel = (JSONObject) channels.get(l);
+                            if (channel.getString("type").equals("Facebook")) {
+                                facebook  = channel.getString("id");
+                            }
+                            if (channel.getString("type").equals("Twitter")) {
+                                twitter = channel.getString("id");
+                            }
+                            if (channel.getString("type").equals("YouTube")) {
+                                youtube = channel.getString("id");
                         }
-                        if (channel.getString("type").equals("Twitter")) {
-                            twitter = channel.getString("id");
-                        }
-                        if (channel.getString("type").equals("YouTube")) {
-                            youtube = channel.getString("id");
                         }
                     }
 
@@ -179,7 +211,7 @@ public class ApiInfoRunnable implements Runnable {
                     officialObject.setOfficeIndex(lowestIndex);
                     officialObject.setOfficeTitle(officeTitle);
                     officialObject.setName(name);
-                    officialObject.setLine(line);
+                    if (!line.isEmpty()) officialObject.setLine(line);
                     if (party.isEmpty()) {
                         officialObject.setParty("Unknown");
                     }
@@ -195,9 +227,7 @@ public class ApiInfoRunnable implements Runnable {
                     officialsList.add(officialObject);
 
                 }
-
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -205,6 +235,7 @@ public class ApiInfoRunnable implements Runnable {
 
         return officialsList;
     }
+
 
     private String buildLine(JSONObject address) throws JSONException {
         StringBuilder line = new StringBuilder();
@@ -218,8 +249,10 @@ public class ApiInfoRunnable implements Runnable {
         if(address.has("line3")) {
             line.append(address.getString("line3"));
         }
+
         return line.toString();
     }
+
 
     public void finalResults(String result) {
         if (result == null) {

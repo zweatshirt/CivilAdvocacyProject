@@ -20,6 +20,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,11 +35,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.StringJoiner;
 
 // Go to office hours about setting up ic_launcher
@@ -52,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements
     private static String location = "No specified location";
     TextView locationText;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements
         determineLocation();
 
         locationText = findViewById(R.id.locationText);
-
     }
 
     /* OPTIONS MENU SETUP START */
@@ -87,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements
     /* OPTIONS MENU SETUP END */
 
     /* LOCATION PERMISSIONS START */
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("MissingPermission") // hasPermission() checks
     private void determineLocation() {
         if (hasPermission()) {
@@ -96,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements
                         if (loc != null) {
                             location = getUserLocation(loc);
                             locationText.setText(location);
+                            new Thread(new ApiInfoRunnable(MainActivity.this, location)).start();
                         }
                     })
                     .addOnFailureListener(this, e -> Toast.makeText(MainActivity.this,
@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements
         List<Address> addresses;
 
         try {
-            addresses = geo.getFromLocation(loc.getLatitude(), loc.getLatitude(), 1);
+            addresses = geo.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
             Address address = addresses.get(0);
 
                 if (address.getSubThoroughfare() != null) sj.add(address.getSubThoroughfare());
@@ -255,11 +256,28 @@ public class MainActivity extends AppCompatActivity implements
                 activeNetwork.isConnectedOrConnecting();
     }
 
+    // I don't really get the point of doing this but the project doc said to do it so..
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void updateLocation(String normalizedLine1, String normalizedCity, String normalizedState, String normalizedZip) {
+        StringJoiner sj = new StringJoiner(", ");
+        if (normalizedLine1 != null) sj.add(normalizedLine1);
+        if (normalizedCity != null) sj.add(normalizedCity);
+        if (normalizedState != null) sj.add(normalizedState);
+        if (normalizedZip != null) sj.add(normalizedZip);
+
+        location = sj.toString();
+        TextView locationView = findViewById(R.id.locationText);
+        locationView.setText(location);
+    }
+
     public void failedOfficialsDownload() {
 
     }
 
     public void updateOfficialsList(List<Official> officials) {
         this.officials = officials;
+        for (Official official : officials) {
+            Log.d("", official.getName());
+        }
     }
 }
