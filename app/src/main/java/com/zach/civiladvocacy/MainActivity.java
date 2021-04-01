@@ -6,6 +6,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -29,12 +32,14 @@ import android.view.View;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
+import android.widget.EdgeEffect;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
@@ -44,23 +49,41 @@ import java.util.StringJoiner;
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener, View.OnLongClickListener {
 
+    private RecyclerView officialsView;
+    private OfficialListAdapter adapter;
     private List<Official> officials = new ArrayList<>();
     private FusedLocationProviderClient mFusedLocationClient;
     private static final int LOCATION_REQUEST = 111;
     private static String location = "No specified location";
     TextView locationText;
+    RecyclerView.LayoutManager layoutManager;
+
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        officialsView = findViewById(R.id.rView);
+        layoutManager = new LinearLayoutManager(this);
+        officialsView.setLayoutManager(layoutManager);
+        adapter = new OfficialListAdapter(officials, this);
+        officialsView.setAdapter(adapter);
+
+        // added a shadow instead of doing this but I will probably get sick of it
+//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(officialsView.getContext(),
+//                LinearLayoutManager.VERTICAL);
+//        officialsView.addItemDecoration(dividerItemDecoration);
+
+
         mFusedLocationClient =
                 LocationServices.getFusedLocationProviderClient(this);
         determineLocation();
-
         locationText = findViewById(R.id.locationText);
     }
+
+
 
     /* OPTIONS MENU SETUP START */
     @Override
@@ -94,8 +117,7 @@ public class MainActivity extends AppCompatActivity implements
                         // Got last known location. In some rare situations this can be null.
                         if (loc != null) {
                             location = getUserLocation(loc);
-                            locationText.setText(location);
-                            new Thread(new ApiInfoRunnable(MainActivity.this, location)).start();
+                            startApiInfoRunnable(location);
                         }
                     })
                     .addOnFailureListener(this, e -> Toast.makeText(MainActivity.this,
@@ -224,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements
             if (address.getPostalCode() != null) sj.add(address.getPostalCode());
 
             location = sj.toString();
-            locationText.setText(location);
+            startApiInfoRunnable(location);
             // pass location to runnable
         } catch (IOException e) {
             locationText.setText(R.string.addressNotFound);
@@ -256,6 +278,10 @@ public class MainActivity extends AppCompatActivity implements
                 activeNetwork.isConnectedOrConnecting();
     }
 
+    private void startApiInfoRunnable(String location) {
+        new Thread(new ApiInfoRunnable(MainActivity.this, location)).start();
+    }
+
     // I don't really get the point of doing this but the project doc said to do it so..
     @RequiresApi(api = Build.VERSION_CODES.N)
     public void updateLocation(String normalizedLine1, String normalizedCity, String normalizedState, String normalizedZip) {
@@ -274,10 +300,24 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void updateOfficialsList(List<Official> officials) {
-        this.officials = officials;
+        this.officials.clear();
+        this.officials.addAll(officials);
+        sortOfficials();
+        adapter.notifyDataSetChanged();
         for (Official official : officials) {
             Log.d("", official.getName());
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void sortOfficials() {
+        officials.sort(new Comparator<Official>() {
+            @Override
+            public int compare(Official o1, Official o2) {
+                return o1.getOfficeIndex() - o2.getOfficeIndex();
+            }
+        });
     }
 }

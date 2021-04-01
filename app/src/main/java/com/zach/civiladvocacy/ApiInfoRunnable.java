@@ -34,6 +34,7 @@ public class ApiInfoRunnable implements Runnable {
         this.location = location;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void run() {
         StringBuilder queryString;
@@ -59,7 +60,7 @@ public class ApiInfoRunnable implements Runnable {
             connection.connect();
             if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) {
                 Log.d(TAG, "ApiInfoRunnable: HTTP ResponseCode NOT OK: " + connection.getResponseCode());
-                finalResults(null);
+                    finalResults(null);
                 return;
             }
             connectionInputStream = connection.getInputStream();
@@ -254,6 +255,7 @@ public class ApiInfoRunnable implements Runnable {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void finalResults(String result) {
         if (result == null) {
             Log.d(TAG, "finalResults: FAILURE to download Officials information.");
