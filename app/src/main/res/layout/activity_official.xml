@@ -109,7 +109,6 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:text="@string/address"
-            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/politicianImg" />
@@ -121,7 +120,6 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="@string/phone"
-            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/addressLink" />
@@ -133,7 +131,6 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="9dp"
             android:text="@string/email"
-            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/phoneLink" />
@@ -145,7 +142,6 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="@string/website"
-            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/emailLink" />
@@ -192,6 +188,7 @@
             android:layout_marginTop="16dp"
             android:text="@string/addressLink"
             android:textColor="@color/white"
+            android:textColorLink="@android:color/white"
             app:layout_constraintStart_toEndOf="@+id/addressView"
             app:layout_constraintTop_toBottomOf="@+id/politicianImg" />
 
@@ -202,6 +199,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="@string/emailLink"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/emailView"
             app:layout_constraintTop_toBottomOf="@+id/phoneLink" />
@@ -213,6 +211,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="@string/websiteLink"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/websiteView"
             app:layout_constraintTop_toBottomOf="@+id/emailLink" />
