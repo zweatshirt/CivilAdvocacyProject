@@ -17,12 +17,13 @@
 
         <TextView
             android:id="@+id/phoneLink"
-            android:layout_width="wrap_content"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="phone"
+            android:text="@string/phoneLink"
             android:textColor="@color/white"
+            android:textColorLink="@android:color/white"
             app:layout_constraintStart_toEndOf="@+id/phoneView"
             app:layout_constraintTop_toBottomOf="@+id/addressLink" />
 
@@ -31,9 +32,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Name"
+            android:text="@string/name"
             android:textAlignment="center"
             android:textColor="@color/white"
+            android:textColorLink="@android:color/white"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -44,9 +46,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/teal"
-            android:text="Location"
+            android:text="@string/location"
             android:textAlignment="center"
             android:textColor="@color/white"
+            android:textColorLink="@android:color/white"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -57,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Position"
+            android:text="@string/position"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="24sp"
@@ -70,17 +73,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="(Party)"
+            android:text="@string/party"
             android:textAlignment="center"
             android:textColor="@color/white"
+            android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/nameView" />
 
         <ImageView
             android:id="@+id/politicianImg"
-            android:layout_width="234dp"
-            android:layout_height="252dp"
+            android:layout_width="242dp"
+            android:layout_height="278dp"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -91,7 +95,7 @@
             android:id="@+id/partyImg"
             android:layout_width="70dp"
             android:layout_height="67dp"
-            android:layout_marginTop="200dp"
+            android:layout_marginTop="220dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
@@ -104,10 +108,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="Address:"
+            android:text="@string/address"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/partyImg" />
+            app:layout_constraintTop_toBottomOf="@+id/politicianImg" />
 
         <TextView
             android:id="@+id/phoneView"
@@ -115,21 +120,23 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="Phone"
+            android:text="@string/phone"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/addressView" />
+            app:layout_constraintTop_toBottomOf="@+id/addressLink" />
 
         <TextView
             android:id="@+id/emailView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:text="email"
+            android:layout_marginTop="9dp"
+            android:text="@string/email"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/phoneView" />
+            app:layout_constraintTop_toBottomOf="@+id/phoneLink" />
 
         <TextView
             android:id="@+id/websiteView"
@@ -137,10 +144,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="website"
+            android:text="@string/website"
+            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/emailView" />
+            app:layout_constraintTop_toBottomOf="@+id/emailLink" />
 
         <ImageView
             android:id="@+id/facebookImg"
@@ -155,8 +163,8 @@
 
         <ImageView
             android:id="@+id/twitterImg"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
             android:layout_marginTop="8dp"
             android:onClick="twitterClicked"
             app:layout_constraintEnd_toEndOf="parent"
@@ -178,33 +186,33 @@
 
         <TextView
             android:id="@+id/addressLink"
-            android:layout_width="wrap_content"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:text="address"
+            android:text="@string/addressLink"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/addressView"
-            app:layout_constraintTop_toBottomOf="@+id/partyImg" />
+            app:layout_constraintTop_toBottomOf="@+id/politicianImg" />
 
         <TextView
             android:id="@+id/emailLink"
-            android:layout_width="wrap_content"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="email"
+            android:text="@string/emailLink"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/emailView"
             app:layout_constraintTop_toBottomOf="@+id/phoneLink" />
 
         <TextView
             android:id="@+id/websiteLink"
-            android:layout_width="wrap_content"
+            android:layout_width="260dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="website"
+            android:text="@string/websiteLink"
             android:textColor="@color/white"
             app:layout_constraintStart_toEndOf="@+id/websiteView"
             app:layout_constraintTop_toBottomOf="@+id/emailLink" />

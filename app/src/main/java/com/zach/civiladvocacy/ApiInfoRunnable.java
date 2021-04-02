@@ -213,6 +213,9 @@ public class ApiInfoRunnable implements Runnable {
                     officialObject.setOfficeTitle(officeTitle);
                     officialObject.setName(name);
                     if (!line.isEmpty()) officialObject.setLine(line);
+                    if (!city.isEmpty()) officialObject.setCity(city);
+                    if (!state.isEmpty()) officialObject.setState(state);
+                    if (!zip.isEmpty()) officialObject.setZip(zip);
                     if (party.isEmpty()) {
                         officialObject.setParty("Unknown");
                     }

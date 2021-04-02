@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,6 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -59,19 +61,20 @@ public class MainActivity extends AppCompatActivity implements
     RecyclerView.LayoutManager layoutManager;
 
 
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        final Typeface typeface = ResourcesCompat.getFont(this, R.font.roboto);
         officialsView = findViewById(R.id.rView);
         layoutManager = new LinearLayoutManager(this);
         officialsView.setLayoutManager(layoutManager);
         adapter = new OfficialListAdapter(officials, this);
         officialsView.setAdapter(adapter);
 
-        // added a shadow instead of doing this but I will probably get sick of it
+        // Decided to use cards instead
 //        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(officialsView.getContext(),
 //                LinearLayoutManager.VERTICAL);
 //        officialsView.addItemDecoration(dividerItemDecoration);
@@ -81,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements
                 LocationServices.getFusedLocationProviderClient(this);
         determineLocation();
         locationText = findViewById(R.id.locationText);
+        locationText.setTypeface(typeface);
     }
-
 
 
     /* OPTIONS MENU SETUP START */
@@ -258,15 +261,25 @@ public class MainActivity extends AppCompatActivity implements
 
     /* USER LOCATION SEARCH PARSING END */
 
+    /* RECYCLER VIEW CLICK METHODS */
+
     @Override
     public void onClick(View v) {
-
+        int pos = officialsView.getChildAdapterPosition(v);
+        Official official = officials.get(pos);
+        // Pass Official object to OfficialActivity
+        Intent officialActivityIntent = new Intent(this, OfficialActivity.class);
+        officialActivityIntent.putExtra("Official", official);
+        officialActivityIntent.putExtra("Location", location);
+        startActivity(officialActivityIntent);
     }
 
     @Override
     public boolean onLongClick(View v) {
         return false;
     }
+
+    /* RECYCLER VIEW CLICK METHODS END */
 
 
     private boolean isNetworkConnected() {
@@ -308,6 +321,9 @@ public class MainActivity extends AppCompatActivity implements
         adapter.notifyDataSetChanged();
         for (Official official : officials) {
             Log.d("", official.getName());
+            Log.d("", official.getWebUrl());
+            if (official.getEmail() != null)
+            Log.d("", official.getEmail());
         }
     }
 

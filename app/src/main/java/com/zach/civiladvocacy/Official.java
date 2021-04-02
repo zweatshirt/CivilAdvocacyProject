@@ -11,7 +11,7 @@ public class Official implements Serializable {
     private String city;
     private String state;
     private String zip;
-
+    private String normalizedAddress;
     // Office title
     private String officeTitle;
     private String name;
@@ -30,7 +30,6 @@ public class Official implements Serializable {
     public String getLine() {
         return line;
     }
-
 
     public String getCity() {
         return city;

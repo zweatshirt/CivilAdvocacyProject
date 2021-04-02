@@ -4,4 +4,16 @@
     <string name="deniedText">Location permission was denied. Please search a location or allow permission.</string>
     <string name="addressNotFound">Nothing Found</string>
     <string name="enterAddress">Enter An Address:</string>
+    <string name="website">Website:</string>
+    <string name="email">Email:</string>
+    <string name="phone">Phone:</string>
+    <string name="address">Address:</string>
+    <string name="party">(Party)</string>
+    <string name="position">Position</string>
+    <string name="location">Location</string>
+    <string name="name">Name</string>
+    <string name="phoneLink">phone</string>
+    <string name="websiteLink">website</string>
+    <string name="emailLink">email</string>
+    <string name="addressLink">address</string>
 </resources>
