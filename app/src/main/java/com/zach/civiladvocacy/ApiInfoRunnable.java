@@ -3,7 +3,6 @@ package com.zach.civiladvocacy;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -14,7 +13,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +58,7 @@ public class ApiInfoRunnable implements Runnable {
             connection.connect();
             if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) {
                 Log.d(TAG, "ApiInfoRunnable: HTTP ResponseCode NOT OK: " + connection.getResponseCode());
-                    finalResults(null);
+                finalResults(null);
                 return;
             }
             connectionInputStream = connection.getInputStream();
@@ -68,7 +66,7 @@ public class ApiInfoRunnable implements Runnable {
 
             allJson = new StringBuilder();
             String line;
-            while((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 allJson.append(line);
             }
 
@@ -138,7 +136,7 @@ public class ApiInfoRunnable implements Runnable {
                     String zip = "";
                     if (official.has("address")) {
                         JSONArray addresses = official.getJSONArray("address");
-                        JSONObject  address = (JSONObject) addresses.get(0);
+                        JSONObject address = (JSONObject) addresses.get(0);
                         line = buildLine(address);
                         city = address.getString("city");
                         state = address.getString("state");
@@ -149,8 +147,7 @@ public class ApiInfoRunnable implements Runnable {
                     String party;
                     if (official.has("party")) {
                         party = official.getString("party");
-                    }
-                    else party = "Unknown";
+                    } else party = "Unknown";
 
                     // parse for phone
                     String phone = "";
@@ -194,14 +191,14 @@ public class ApiInfoRunnable implements Runnable {
                         for (int l = 0; l < channels.length(); l++) {
                             JSONObject channel = (JSONObject) channels.get(l);
                             if (channel.getString("type").equals("Facebook")) {
-                                facebook  = channel.getString("id");
+                                facebook = channel.getString("id");
                             }
                             if (channel.getString("type").equals("Twitter")) {
                                 twitter = channel.getString("id");
                             }
                             if (channel.getString("type").equals("YouTube")) {
                                 youtube = channel.getString("id");
-                        }
+                            }
                         }
                     }
 
@@ -215,8 +212,7 @@ public class ApiInfoRunnable implements Runnable {
                     if (!zip.isEmpty()) officialObject.setZip(zip);
                     if (party.isEmpty()) {
                         officialObject.setParty("Unknown");
-                    }
-                    else officialObject.setParty(party);
+                    } else officialObject.setParty(party);
 
                     if (!phone.isEmpty()) officialObject.setPhone(phone);
                     if (!url.isEmpty()) officialObject.setWebUrl(url);
@@ -229,8 +225,7 @@ public class ApiInfoRunnable implements Runnable {
 
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -244,10 +239,10 @@ public class ApiInfoRunnable implements Runnable {
         if (address.has("line1")) {
             line.append(address.getString("line1"));
         }
-        if(address.has("line2")) {
+        if (address.has("line2")) {
             line.append(address.getString("line2"));
         }
-        if(address.has("line3")) {
+        if (address.has("line3")) {
             line.append(address.getString("line3"));
         }
 
@@ -260,8 +255,7 @@ public class ApiInfoRunnable implements Runnable {
         if (result == null) {
             Log.d(TAG, "finalResults: FAILURE to download Officials information.");
             main.runOnUiThread(main::failedOfficialsDownload);
-        }
-        else {
+        } else {
             // if connection OK, populate stocksList
             final List<Official> officials = parseJSONForOfficials(result);
             main.runOnUiThread(() -> {

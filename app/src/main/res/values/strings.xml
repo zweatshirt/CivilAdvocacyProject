@@ -16,4 +16,5 @@
     <string name="websiteLink">website</string>
     <string name="emailLink">email</string>
     <string name="addressLink">address</string>
+    <string name="noconnection">No Data For Location</string>
 </resources>

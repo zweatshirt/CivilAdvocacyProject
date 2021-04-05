@@ -1,14 +1,5 @@
 package com.zach.civiladvocacy;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -20,20 +11,29 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +47,7 @@ import java.util.StringJoiner;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener, View.OnLongClickListener {
+    private final String TAG = "MainActivity";
 
     private RecyclerView officialsView;
     private OfficialListAdapter adapter;
@@ -57,35 +58,45 @@ public class MainActivity extends AppCompatActivity implements
     TextView locationText;
     RecyclerView.LayoutManager layoutManager;
 
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Objects.requireNonNull(getSupportActionBar()).setTitle("Know Your Government");
         Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Medium.ttf");
+
         officialsView = findViewById(R.id.rView);
         layoutManager = new LinearLayoutManager(this);
         officialsView.setLayoutManager(layoutManager);
         adapter = new OfficialListAdapter(officials, this);
         officialsView.setAdapter(adapter);
-
-        mFusedLocationClient =
-                LocationServices.getFusedLocationProviderClient(this);
-        determineLocation();
         locationText = findViewById(R.id.locationText);
         locationText.setTypeface(typeface);
+        mFusedLocationClient = LocationServices
+                .getFusedLocationProviderClient(this);
+        checkAndDetermineLocation();
+
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndDetermineLocation();
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        checkAndDetermineLocation();
+    }
 
     /* OPTIONS MENU SETUP START */
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.opt_menu, menu);
         // change icon colors to white
-        // change menu title
-
 
         return true;
     }
@@ -102,6 +113,18 @@ public class MainActivity extends AppCompatActivity implements
     /* OPTIONS MENU SETUP END */
 
     /* LOCATION PERMISSIONS START */
+
+    // check user connection and determines user location
+    private void checkAndDetermineLocation() {
+        if (isNetworkConnected()) {
+            determineLocation();
+        }
+        else {
+            locationText.setText(R.string.noconnection);
+            noConnection();
+        }
+    }
+
     // hasPermission() checks
     @SuppressLint("MissingPermission")
     private void determineLocation() {
@@ -114,8 +137,8 @@ public class MainActivity extends AppCompatActivity implements
                             startApiInfoRunnable(location);
                         }
                     })
-                    .addOnFailureListener(this, e -> Toast.makeText(MainActivity.this,
-                            e.getMessage(), Toast.LENGTH_LONG).show());
+                    .addOnFailureListener(this, e -> Toast.makeText(
+                            MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
 
@@ -155,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements
     /* LOCATION PERMISSIONS END */
 
     /* Only used for user's location, NOT searched location */
-    @RequiresApi(api = Build.VERSION_CODES.N)
     private String getUserLocation(Location loc) {
         StringJoiner sj = new StringJoiner(", ");
         Geocoder geo = new Geocoder(this, Locale.getDefault());
@@ -192,16 +214,13 @@ public class MainActivity extends AppCompatActivity implements
 
         // Grab user's location search request, pass to parseLocSearch()
         builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.N) // Because of StringJoiner
             @Override
             public void onClick(DialogInterface dialog, int id) {
                 EditText searchView = addressDialog.findViewById(R.id.user_query);
                 String locationQuery = searchView.getText().toString();
                 parseLocSearch(locationQuery);
-
             }
         });
-
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int id) {
@@ -213,7 +232,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // Parse user query String into valid location address
-    @RequiresApi(api = Build.VERSION_CODES.N) // Because of StringJoiner
     private void parseLocSearch(String locationQuery) {
         Geocoder geo = new Geocoder(this, Locale.getDefault());
         TextView locationText = findViewById(R.id.locationText);
@@ -254,6 +272,14 @@ public class MainActivity extends AppCompatActivity implements
 
     /* RECYCLER VIEW CLICK METHODS */
 
+    private void noConnection() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("No Network Connection")
+                .setMessage("Data cannot be loaded without a network connection.");
+        builder.show();
+
+    }
+
     @Override
     public void onClick(View v) {
         int pos = officialsView.getChildAdapterPosition(v);
@@ -272,23 +298,28 @@ public class MainActivity extends AppCompatActivity implements
 
     /* RECYCLER VIEW CLICK METHODS END */
 
-
+    // check network connection
     private boolean isNetworkConnected() {
-        ConnectivityManager cm =
-                (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
 
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
+        NetworkCapabilities cap = cm.getNetworkCapabilities(cm.getActiveNetwork());
+        return cap != null && (
+                cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        cap.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
     }
 
+    /* RECYCLER VIEW POPULATION START */
+
+    // start thread of ApiInfoRunnable to find officials near user
     private void startApiInfoRunnable(String location) {
         new Thread(new ApiInfoRunnable(MainActivity.this, location)).start();
     }
 
-    // I don't really get the point of doing this but the project doc said to do it so..
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public void updateLocation(String normalizedLine1, String normalizedCity, String normalizedState, String normalizedZip) {
+    // 'normalizes' location to whatever is in JSON
+    public void updateLocation(String normalizedLine1, String normalizedCity,
+                               String normalizedState, String normalizedZip) {
+
         StringJoiner sj = new StringJoiner(", ");
         if (normalizedLine1 != null) sj.add(normalizedLine1);
         if (normalizedCity != null) sj.add(normalizedCity);
@@ -301,19 +332,16 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void failedOfficialsDownload() {
-
+        Log.d(TAG, "Failure to fetch Officials data");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public void updateOfficialsList(List<Official> officials) {
         this.officials.clear();
         this.officials.addAll(officials);
         sortOfficials();
         adapter.notifyDataSetChanged();
-
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     private void sortOfficials() {
         officials.sort(new Comparator<Official>() {
             @Override
@@ -322,4 +350,6 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
     }
+
+    /* RECYCLER VIEW POPULATION END */
 }

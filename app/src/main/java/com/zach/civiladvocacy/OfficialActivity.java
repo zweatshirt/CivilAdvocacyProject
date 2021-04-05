@@ -1,9 +1,5 @@
 package com.zach.civiladvocacy;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,12 +9,14 @@ import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.util.Linkify;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -52,7 +50,9 @@ public class OfficialActivity extends AppCompatActivity {
     private String youtube;
     private Official official;
     private boolean hasLoaded;
+    private String location;
     ImageLoader imageLoader;
+
     // implement landscape view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +66,8 @@ public class OfficialActivity extends AppCompatActivity {
         nameView = findViewById(R.id.nameView);
         partyText = findViewById(R.id.partyView);
         positionView = findViewById(R.id.positionView);
-        politicianImg = findViewById(R.id.politicianImg);
-        locationView = findViewById(R.id.officialLocationView);
+        politicianImg = findViewById(R.id.detailPoliticianImg);
+        locationView = findViewById(R.id.detailLocationView);
         addressLink = findViewById(R.id.addressLink);
         addressView = findViewById(R.id.addressView);
         phoneView = findViewById(R.id.phoneView);
@@ -77,14 +77,12 @@ public class OfficialActivity extends AppCompatActivity {
         websiteView = findViewById(R.id.websiteView);
         websiteLink = findViewById(R.id.websiteLink);
 
-        partyImg = findViewById(R.id.partyImg);
+        partyImg = findViewById(R.id.detailPartyImg);
         facebookView = findViewById(R.id.facebookImg);
         twitterView = findViewById(R.id.twitterImg);
         youtubeView = findViewById(R.id.youtubeImg);
 
         Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Medium.ttf");
-        // trying to set typeface keeps throwing null pointer exception
-        // despite views being initialized
         setFonts(typeface);
 
         Intent officialIntent = getIntent();
@@ -149,7 +147,7 @@ public class OfficialActivity extends AppCompatActivity {
                 this, R.drawable.missing));
     }
 
-    // if black background, change brokenimage to white
+    // if black background, change brokenimage to white, not sure if this actually works
     private void setFailureImgWhite() {
         ColorDrawable background = (ColorDrawable) getWindow().getDecorView().getBackground();
         int colorId = background.getColor();
@@ -161,6 +159,7 @@ public class OfficialActivity extends AppCompatActivity {
     }
 
     // If Picasso fails, try Universal Image Loader API
+    // This might actually crash the app so may remove
     private void tryImageLoader(String url) {
         imageLoader.displayImage(url, politicianImg, null, new ImageLoadingListener() {
             @Override
@@ -192,12 +191,10 @@ public class OfficialActivity extends AppCompatActivity {
 
     private void setBackgroundColor(String party) {
         if (party.equals("Democratic Party")) {
-             getWindow().getDecorView().setBackgroundColor(Color.BLUE);
-        }
-        else if (party.equals("Republican Party")) {
+            getWindow().getDecorView().setBackgroundColor(Color.BLUE);
+        } else if (party.equals("Republican Party")) {
             getWindow().getDecorView().setBackgroundColor(Color.RED);
-        }
-        else getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+        } else getWindow().getDecorView().setBackgroundColor(Color.BLACK);
     }
 
     private void setParty(String party) {
@@ -206,7 +203,7 @@ public class OfficialActivity extends AppCompatActivity {
         if (party.equals("Republican Party")) {
             String repImgName = "rep_logo";
             int resID = getResources().getIdentifier(
-                    repImgName , "drawable", getPackageName());
+                    repImgName, "drawable", getPackageName());
             partyImg.setImageResource(resID);
         }
         if (party.equals("Nonpartisan")
@@ -214,7 +211,7 @@ public class OfficialActivity extends AppCompatActivity {
             partyImg.setVisibility(View.GONE);
         }
     }
-    @RequiresApi(api = Build.VERSION_CODES.N)
+
     private void setAddress(Official official) {
         StringJoiner sj = new StringJoiner(", ");
         if (official.getLine() != null) sj.add(official.getLine());
@@ -222,7 +219,13 @@ public class OfficialActivity extends AppCompatActivity {
         if (official.getState() != null) sj.add(official.getState());
         if (official.getZip() != null) sj.add(official.getZip());
 
-        addressLink.setText(sj.toString());
+        String address = sj.toString();
+        if (address != null && !address.isEmpty())
+            addressLink.setText(address);
+        else {
+            addressLink.setVisibility(View.GONE);
+            addressView.setVisibility(View.GONE);
+        }
         Linkify.addLinks(addressLink, Linkify.ALL);
     }
 
@@ -250,22 +253,28 @@ public class OfficialActivity extends AppCompatActivity {
     private void setSocials(Official official) {
         if (official.getFacebookId() == null) {
             facebookView.setVisibility(View.GONE);
-        }
-        else fb = official.getFacebookId();
+        } else fb = official.getFacebookId();
 
         if (official.getTwitterId() == null) {
             twitterView.setVisibility(View.GONE);
-        }
-        else twitter = official.getTwitterId();
+        } else twitter = official.getTwitterId();
 
         if (official.getYoutubeId() == null) {
             youtubeView.setVisibility(View.GONE);
-        }
-        else youtube = official.getFacebookId();
+        } else youtube = official.getFacebookId();
     }
 
     // Politician's image clicked, if successful load -> open PhotoDetail activity
     public void imgClicked(View v) {
+        if (hasLoaded) {
+            Intent photoDetailIntent = new Intent(this, PhotoDetailActivity.class);
+            photoDetailIntent.putExtra("PhotoUrl", official.getPhotoUrl());
+            photoDetailIntent.putExtra("Name", official.getName());
+            photoDetailIntent.putExtra("Party", official.getParty());
+            photoDetailIntent.putExtra("Position", official.getOfficeTitle());
+            photoDetailIntent.putExtra("Location", location);
+            startActivity(photoDetailIntent);
+        }
     }
 
     public void youtubeClicked(View v) {
@@ -276,8 +285,7 @@ public class OfficialActivity extends AppCompatActivity {
             intent.setPackage("com.google.android.youtube");
             intent.setData(Uri.parse("https://www.youtube.com/" + name));
             startActivity(intent);
-        }
-        catch (ActivityNotFoundException e){
+        } catch (ActivityNotFoundException e) {
             startActivity(new Intent(Intent.ACTION_VIEW,
                     Uri.parse("https://www.youtube.com/" + name)));
 
@@ -319,7 +327,6 @@ public class OfficialActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
-
 
 
 }
