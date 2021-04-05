@@ -32,7 +32,6 @@ public class ApiInfoRunnable implements Runnable {
         this.location = location;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void run() {
         StringBuilder queryString;
@@ -79,16 +78,186 @@ public class ApiInfoRunnable implements Runnable {
 
     private List<Official> parseJSONForOfficials(String result) {
         List<Official> officialsList = new ArrayList<>();
-        // Don't forget to check if strings are empty or null before adding to officials
 
         try {
+            // JSON to extract
             JSONObject allInfo = new JSONObject(result);
 
+            // Official object to populate with JSON data
+            Official officialObject = new Official();
+
+            // Normalized address, set location in MainActivity to this
+            JSONObject normalizedInput = allInfo.getJSONObject("normalizedInput");
+            fetchNormalizedLine(normalizedInput);
+
+            JSONArray offices = allInfo.getJSONArray("offices");
+            JSONArray officials = allInfo.getJSONArray("officials");
+
+            // Iterate through offices array
+            for (int i = 0; i < offices.length(); i++) {
+                JSONObject officesObj = (JSONObject) offices.get(i);
+
+                String officeTitle = officesObj.getString("name");
+                officialObject.setOfficeTitle(officeTitle);
+
+                // offices array contains indices array officialIndices pointing to 'officials' objects
+                JSONArray officialIndices = officesObj.getJSONArray("officialIndices");
+
+                // maintain lowest index of official to ensure ordering in RecyclerView
+                int lowestIndex = (int) officialIndices.get(0);
+                officialObject.setOfficeIndex(lowestIndex);
+
+                for (int j = 0; j < officialIndices.length(); j++) {
+
+                    // point to official by using index stored in officialIndices
+                    int index = (int) officialIndices.get(j);
+                    JSONObject jsonOfficial = (JSONObject) officials.get(index);
+
+                    // Official's name
+                    String name = jsonOfficial.getString("name");
+                    officialObject.setName(name);
+
+                    fetchAddressInfo(jsonOfficial, officialObject);
+
+                    // parse for party
+                    fetchParty(jsonOfficial, officialObject);
+
+                    // parse for phone
+                    fetchPhone(jsonOfficial, officialObject);
+
+                    // parse for url
+                    fetchUrl(jsonOfficial, officialObject);
+
+                    // parse for email
+                    fetchEmail(jsonOfficial, officialObject);
+
+                    // photoUrl
+                    fetchPhotoUrl(jsonOfficial, officialObject);
+
+                    // add Facebook, Twitter, YouTube urls if provided by JSON
+                    fetchChannels(jsonOfficial, officialObject);
+
+                    officialsList.add(officialObject);
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return officialsList;
+    }
+
+    private void fetchChannels(JSONObject jsonOfficial, Official officialObject)
+            throws JSONException {
+        String facebook = "";
+        String twitter = "";
+        String youtube = "";
+        // play it safe
+        if (jsonOfficial.has("channels")) {
+            JSONArray channels = jsonOfficial.getJSONArray("channels");
+            for (int l = 0; l < channels.length(); l++) {
+                JSONObject channel = (JSONObject) channels.get(l);
+                if (channel.getString("type").equals("Facebook")) {
+                    facebook = channel.getString("id");
+                }
+                if (channel.getString("type").equals("Twitter")) {
+                    twitter = channel.getString("id");
+                }
+                if (channel.getString("type").equals("YouTube")) {
+                    youtube = channel.getString("id");
+                }
+            }
+        }
+
+        if (!facebook.isEmpty()) officialObject.setFacebookId(facebook);
+        if (!twitter.isEmpty()) officialObject.setTwitterId(twitter);
+        if (!youtube.isEmpty()) officialObject.setYoutubeId(youtube);
+    }
+
+    private void fetchPhotoUrl(JSONObject jsonOfficial, Official officialObject) throws JSONException {
+        String photoUrl = "";
+        if (jsonOfficial.has("photoUrl")) {
+            photoUrl = jsonOfficial.getString("photoUrl");
+        }
+
+        if (!photoUrl.isEmpty()) officialObject.setPhotoUrl(photoUrl);
+    }
+
+    private void fetchEmail(JSONObject jsonOfficial, Official officialObject) throws JSONException {
+        String email = "";
+        if (jsonOfficial.has("emails")) {
+            JSONArray emails = jsonOfficial.getJSONArray("emails");
+            if (!(emails.length() == 0)) {
+                email = (String) emails.get(0);
+            }
+        }
+
+        if (!email.isEmpty()) officialObject.setEmail(email);
+    }
+
+    private void fetchUrl(JSONObject jsonOfficial, Official officialObject) throws JSONException {
+        String url = "";
+        if (jsonOfficial.has("urls")) {
+            JSONArray urls = jsonOfficial.getJSONArray("urls");
+            if (!(urls.length() == 0)) {
+                url = (String) urls.get(0);
+            }
+        }
+
+        if (!url.isEmpty()) officialObject.setWebUrl(url);
+    }
+
+    public void fetchPhone(JSONObject jsonOfficial, Official officialObject) throws JSONException {
+        String phone = "";
+        if (jsonOfficial.has("phones")) {
+            JSONArray phones = jsonOfficial.getJSONArray("phones");
+            if (!(phones.length() == 0)) {
+                phone = (String) phones.get(0);
+            }
+        }
+
+        if (!phone.isEmpty()) officialObject.setPhone(phone);
+    }
+
+    private void fetchParty(JSONObject official, Official officialObject) throws JSONException {
+        String party;
+        if (official.has("party")) {
+            party = official.getString("party");
+        } else party = "Unknown";
+
+        if (party.isEmpty()) {
+            officialObject.setParty("Unknown");
+        } else officialObject.setParty(party);
+    }
+
+    private void fetchAddressInfo(JSONObject official, Official officialObject)
+            throws JSONException {
+        String line = "";
+        String city = "";
+        String state = "";
+        String zip = "";
+        if (official.has("address")) {
+            JSONArray addresses = official.getJSONArray("address");
+            JSONObject address = (JSONObject) addresses.get(0);
+            line = buildLine(address);
+            city = address.getString("city");
+            state = address.getString("state");
+            zip = address.getString("zip");
+        }
+        if (!line.isEmpty()) officialObject.setLine(line);
+        if (!city.isEmpty()) officialObject.setCity(city);
+        if (!state.isEmpty()) officialObject.setState(state);
+        if (!zip.isEmpty()) officialObject.setZip(zip);
+    }
+
+    private void fetchNormalizedLine(JSONObject normalizedInput) throws JSONException {
+        try {
             String normalizedLine1 = null;
             String normalizedCity = null;
             String normalizedState = null;
             String normalizedZip = null;
-            JSONObject normalizedInput = allInfo.getJSONObject("normalizedInput");
+
             if (!normalizedInput.getString("line1").isEmpty()) {
                 normalizedLine1 = normalizedInput.getString("line1");
             }
@@ -108,128 +277,7 @@ public class ApiInfoRunnable implements Runnable {
             main.runOnUiThread(() -> {
                 main.updateLocation(finalNormalizedLine, finalNormalizedCity, finalNormalizedState, finalNormalizedZip);
             });
-
-            JSONArray officials = allInfo.getJSONArray("officials");
-            JSONArray offices = allInfo.getJSONArray("offices");
-
-            // Iterate through offices array
-            for (int i = 0; i < offices.length(); i++) {
-                JSONObject officesObj = (JSONObject) offices.get(i);
-                String officeTitle = officesObj.getString("name");
-                JSONArray officialIndices = officesObj.getJSONArray("officialIndices");
-
-                // offices array contains indices array officialIndices pointing to 'officials' objects
-
-                // maintain lowest index of official to ensure ordering in RecyclerView
-                int lowestIndex = (int) officialIndices.get(0);
-
-                for (int j = 0; j < officialIndices.length(); j++) {
-
-                    // point to official by using index stored in officialIndices
-                    int index = (int) officialIndices.get(j);
-                    JSONObject official = (JSONObject) officials.get(index);
-
-                    String name = official.getString("name");
-                    String line = "";
-                    String city = "";
-                    String state = "";
-                    String zip = "";
-                    if (official.has("address")) {
-                        JSONArray addresses = official.getJSONArray("address");
-                        JSONObject address = (JSONObject) addresses.get(0);
-                        line = buildLine(address);
-                        city = address.getString("city");
-                        state = address.getString("state");
-                        zip = address.getString("zip");
-                    }
-
-                    // party
-                    String party;
-                    if (official.has("party")) {
-                        party = official.getString("party");
-                    } else party = "Unknown";
-
-                    // parse for phone
-                    String phone = "";
-                    if (official.has("phones")) {
-                        JSONArray phones = official.getJSONArray("phones");
-                        if (!(phones.length() == 0)) {
-                            phone = (String) phones.get(0);
-                        }
-                    }
-
-                    // parse for url
-                    String url = "";
-                    if (official.has("urls")) {
-                        JSONArray urls = official.getJSONArray("urls");
-                        if (!(urls.length() == 0)) {
-                            url = (String) urls.get(0);
-                        }
-                    }
-
-                    // parse for email
-                    String email = "";
-                    if (official.has("emails")) {
-                        JSONArray emails = official.getJSONArray("emails");
-                        if (!(emails.length() == 0)) {
-                            email = (String) emails.get(0);
-                        }
-                    }
-
-                    // photoUrl
-                    String photoUrl = "";
-                    if (official.has("photoUrl")) {
-                        photoUrl = official.getString("photoUrl");
-                    }
-
-                    String facebook = "";
-                    String twitter = "";
-                    String youtube = "";
-                    // play it safe
-                    if (official.has("channels")) {
-                        JSONArray channels = official.getJSONArray("channels");
-                        for (int l = 0; l < channels.length(); l++) {
-                            JSONObject channel = (JSONObject) channels.get(l);
-                            if (channel.getString("type").equals("Facebook")) {
-                                facebook = channel.getString("id");
-                            }
-                            if (channel.getString("type").equals("Twitter")) {
-                                twitter = channel.getString("id");
-                            }
-                            if (channel.getString("type").equals("YouTube")) {
-                                youtube = channel.getString("id");
-                            }
-                        }
-                    }
-
-                    Official officialObject = new Official();
-                    officialObject.setOfficeIndex(lowestIndex);
-                    officialObject.setOfficeTitle(officeTitle);
-                    officialObject.setName(name);
-                    if (!line.isEmpty()) officialObject.setLine(line);
-                    if (!city.isEmpty()) officialObject.setCity(city);
-                    if (!state.isEmpty()) officialObject.setState(state);
-                    if (!zip.isEmpty()) officialObject.setZip(zip);
-                    if (party.isEmpty()) {
-                        officialObject.setParty("Unknown");
-                    } else officialObject.setParty(party);
-
-                    if (!phone.isEmpty()) officialObject.setPhone(phone);
-                    if (!url.isEmpty()) officialObject.setWebUrl(url);
-                    if (!email.isEmpty()) officialObject.setEmail(email);
-                    if (!photoUrl.isEmpty()) officialObject.setPhotoUrl(photoUrl);
-                    if (!facebook.isEmpty()) officialObject.setFacebookId(facebook);
-                    if (!twitter.isEmpty()) officialObject.setTwitterId(twitter);
-                    if (!youtube.isEmpty()) officialObject.setYoutubeId(youtube);
-                    officialsList.add(officialObject);
-
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-        return officialsList;
     }
 
 
@@ -249,8 +297,6 @@ public class ApiInfoRunnable implements Runnable {
         return line.toString();
     }
 
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public void finalResults(String result) {
         if (result == null) {
             Log.d(TAG, "finalResults: FAILURE to download Officials information.");
