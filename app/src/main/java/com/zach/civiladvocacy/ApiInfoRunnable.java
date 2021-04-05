@@ -103,15 +103,13 @@ public class ApiInfoRunnable implements Runnable {
             if (!normalizedInput.getString("zip").isEmpty()) {
                 normalizedZip = normalizedInput.getString("zip");
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                String finalNormalizedLine = normalizedLine1;
-                String finalNormalizedCity = normalizedCity;
-                String finalNormalizedState = normalizedState;
-                String finalNormalizedZip = normalizedZip;
-                main.runOnUiThread(() -> {
-                    main.updateLocation(finalNormalizedLine, finalNormalizedCity, finalNormalizedState, finalNormalizedZip);
-                });
-            }
+            String finalNormalizedLine = normalizedLine1;
+            String finalNormalizedCity = normalizedCity;
+            String finalNormalizedState = normalizedState;
+            String finalNormalizedZip = normalizedZip;
+            main.runOnUiThread(() -> {
+                main.updateLocation(finalNormalizedLine, finalNormalizedCity, finalNormalizedState, finalNormalizedZip);
+            });
 
             JSONArray officials = allInfo.getJSONArray("officials");
             JSONArray offices = allInfo.getJSONArray("offices");
@@ -192,7 +190,6 @@ public class ApiInfoRunnable implements Runnable {
                     String youtube = "";
                     // play it safe
                     if (official.has("channels")) {
-
                         JSONArray channels = official.getJSONArray("channels");
                         for (int l = 0; l < channels.length(); l++) {
                             JSONObject channel = (JSONObject) channels.get(l);
@@ -268,7 +265,7 @@ public class ApiInfoRunnable implements Runnable {
             // if connection OK, populate stocksList
             final List<Official> officials = parseJSONForOfficials(result);
             main.runOnUiThread(() -> {
-                Log.d(TAG, "Loaded " + officials.size() + " officials.");
+                // Log.d(TAG, "Loaded " + officials.size() + " officials.");
                 main.updateOfficialsList(officials);
             });
         }

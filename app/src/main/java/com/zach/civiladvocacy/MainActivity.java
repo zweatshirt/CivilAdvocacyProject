@@ -6,8 +6,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,7 +23,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,7 +31,6 @@ import android.view.View;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
-import android.widget.EdgeEffect;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 // Go to office hours about setting up ic_launcher
@@ -61,24 +58,18 @@ public class MainActivity extends AppCompatActivity implements
     RecyclerView.LayoutManager layoutManager;
 
 
-
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final Typeface typeface = ResourcesCompat.getFont(this, R.font.roboto);
+        Objects.requireNonNull(getSupportActionBar()).setTitle("Know Your Government");
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Medium.ttf");
         officialsView = findViewById(R.id.rView);
         layoutManager = new LinearLayoutManager(this);
         officialsView.setLayoutManager(layoutManager);
         adapter = new OfficialListAdapter(officials, this);
         officialsView.setAdapter(adapter);
-
-        // Decided to use cards instead
-//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(officialsView.getContext(),
-//                LinearLayoutManager.VERTICAL);
-//        officialsView.addItemDecoration(dividerItemDecoration);
-
 
         mFusedLocationClient =
                 LocationServices.getFusedLocationProviderClient(this);
@@ -95,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements
         // change icon colors to white
         // change menu title
 
+
         return true;
     }
 
@@ -102,8 +94,7 @@ public class MainActivity extends AppCompatActivity implements
         if (item.getItemId() == R.id.about) {
             Intent appInfoSwitch = new Intent(this, AboutActivity.class);
             startActivity(appInfoSwitch);
-        }
-        else if (item.getItemId() == R.id.search) {
+        } else if (item.getItemId() == R.id.search) {
             buildAddressDialog();
         }
         return super.onOptionsItemSelected(item);
@@ -111,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements
     /* OPTIONS MENU SETUP END */
 
     /* LOCATION PERMISSIONS START */
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @SuppressLint("MissingPermission") // hasPermission() checks
+    // hasPermission() checks
+    @SuppressLint("MissingPermission")
     private void determineLocation() {
         if (hasPermission()) {
             mFusedLocationClient.getLastLocation()
@@ -319,12 +310,7 @@ public class MainActivity extends AppCompatActivity implements
         this.officials.addAll(officials);
         sortOfficials();
         adapter.notifyDataSetChanged();
-        for (Official official : officials) {
-            Log.d("", official.getName());
-            Log.d("", official.getWebUrl());
-            if (official.getEmail() != null)
-            Log.d("", official.getEmail());
-        }
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

@@ -2,13 +2,16 @@ package com.zach.civiladvocacy;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
+import androidx.core.content.ContextCompat;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,12 +20,20 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
 import java.util.StringJoiner;
 
 public class OfficialActivity extends AppCompatActivity {
     TextView locationView;
     TextView nameView;
     TextView positionView;
+    ImageView politicianImg;
     TextView partyText;
     TextView addressView;
     TextView addressLink;
@@ -40,56 +51,59 @@ public class OfficialActivity extends AppCompatActivity {
     private String twitter;
     private String youtube;
     private Official official;
+    private boolean hasLoaded;
+    ImageLoader imageLoader;
     // implement landscape view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_official);
-        final Typeface typeface = ResourcesCompat.getFont(this, R.font.roboto);
+        imageLoader = ImageLoader.getInstance();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                .writeDebugLogs()
+                .build();
+        imageLoader.init(config);
         nameView = findViewById(R.id.nameView);
-        nameView.setTypeface(typeface);
         partyText = findViewById(R.id.partyView);
-        partyText.setTypeface(typeface);
         positionView = findViewById(R.id.positionView);
-        positionView.setTypeface(typeface);
+        politicianImg = findViewById(R.id.politicianImg);
         locationView = findViewById(R.id.officialLocationView);
-        locationView.setTypeface(typeface);
         addressLink = findViewById(R.id.addressLink);
-        addressLink.setTypeface(typeface);
         addressView = findViewById(R.id.addressView);
-        addressView.setTypeface(typeface);
+        phoneView = findViewById(R.id.phoneView);
         phoneLink = findViewById(R.id.phoneLink);
-        phoneLink.setTypeface(typeface);
         emailView = findViewById(R.id.emailView);
-        emailView.setTypeface(typeface);
         emailLink = findViewById(R.id.emailLink);
-        emailLink.setTypeface(typeface);
         websiteView = findViewById(R.id.websiteView);
-        websiteView.setTypeface(typeface);
         websiteLink = findViewById(R.id.websiteLink);
-        websiteView.setTypeface(typeface);
-        partyImg = findViewById(R.id.partyImg);;
+
+        partyImg = findViewById(R.id.partyImg);
         facebookView = findViewById(R.id.facebookImg);
         twitterView = findViewById(R.id.twitterImg);
         youtubeView = findViewById(R.id.youtubeImg);
+
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Medium.ttf");
+        // trying to set typeface keeps throwing null pointer exception
+        // despite views being initialized
+        setFonts(typeface);
 
         Intent officialIntent = getIntent();
         unpackIntent(officialIntent);
     }
 
+
     private void unpackIntent(Intent intent) {
         if (intent.hasExtra("Official")) {
             official = (Official) intent.getSerializableExtra("Official");
             if (official != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    setAddress(official);
-                }
+                setAddress(official);
                 positionView.setText(official.getOfficeTitle());
                 nameView.setText(official.getName());
                 setLinks(official);
                 setSocials(official);
                 setParty(official.getParty());
                 setBackgroundColor(official.getParty());
+                setPoliticianImg(official.getPhotoUrl());
             }
         }
         if (intent.hasExtra("Location")) {
@@ -97,15 +111,93 @@ public class OfficialActivity extends AppCompatActivity {
         }
     }
 
+    private void setFonts(Typeface typeface) {
+        nameView.setTypeface(typeface);
+        partyText.setTypeface(typeface);
+        positionView.setTypeface(typeface);
+        locationView.setTypeface(typeface);
+        addressLink.setTypeface(typeface);
+        addressView.setTypeface(typeface);
+        emailView.setTypeface(typeface);
+        phoneLink.setTypeface(typeface);
+        emailLink.setTypeface(typeface);
+        websiteView.setTypeface(typeface);
+        websiteLink.setTypeface(typeface);
+        phoneView.setTypeface(typeface);
+    }
+
+    private void setPoliticianImg(String url) {
+        if (url != null) {
+            Picasso.get().setLoggingEnabled(true);
+            Picasso.get()
+                    .load(url)
+                    .error(R.drawable.brokenimage)
+                    .placeholder(R.drawable.placeholder)
+                    .into(politicianImg, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            hasLoaded = true;
+                        }
+
+                        // if image load failed from Picasso, try ImageLoader
+                        @Override
+                        public void onError(Exception e) {
+                            tryImageLoader(url);
+                        }
+                    });
+        } else politicianImg.setImageDrawable(ContextCompat.getDrawable(
+                this, R.drawable.missing));
+    }
+
+    // if black background, change brokenimage to white
+    private void setFailureImgWhite() {
+        ColorDrawable background = (ColorDrawable) getWindow().getDecorView().getBackground();
+        int colorId = background.getColor();
+        if (colorId == Color.BLACK) {
+            politicianImg.setColorFilter(ContextCompat.getColor(
+                    OfficialActivity.this, android.R.color.white),
+                    PorterDuff.Mode.MULTIPLY);
+        }
+    }
+
+    // If Picasso fails, try Universal Image Loader API
+    private void tryImageLoader(String url) {
+        imageLoader.displayImage(url, politicianImg, null, new ImageLoadingListener() {
+            @Override
+            public void onLoadingStarted(String imageUri, View view) {
+                politicianImg.setImageDrawable(ContextCompat.getDrawable(
+                        OfficialActivity.this, R.drawable.placeholder));
+            }
+
+            @Override
+            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                politicianImg.setImageDrawable(ContextCompat.getDrawable(
+                        OfficialActivity.this, R.drawable.brokenimage));
+                setFailureImgWhite();
+            }
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                hasLoaded = true;
+            }
+
+            @Override
+            public void onLoadingCancelled(String imageUri, View view) {
+                hasLoaded = false;
+            }
+        });
+
+    }
+
+
     private void setBackgroundColor(String party) {
         if (party.equals("Democratic Party")) {
-            getWindow().getDecorView().setBackgroundColor(Color.BLUE);
+             getWindow().getDecorView().setBackgroundColor(Color.BLUE);
         }
         else if (party.equals("Republican Party")) {
             getWindow().getDecorView().setBackgroundColor(Color.RED);
         }
         else getWindow().getDecorView().setBackgroundColor(Color.BLACK);
-
     }
 
     private void setParty(String party) {
@@ -113,7 +205,8 @@ public class OfficialActivity extends AppCompatActivity {
         partyText.setText(pStr);
         if (party.equals("Republican Party")) {
             String repImgName = "rep_logo";
-            int resID = getResources().getIdentifier(repImgName , "drawable", getPackageName());
+            int resID = getResources().getIdentifier(
+                    repImgName , "drawable", getPackageName());
             partyImg.setImageResource(resID);
         }
         if (party.equals("Nonpartisan")
@@ -138,14 +231,17 @@ public class OfficialActivity extends AppCompatActivity {
             phoneLink.setVisibility(View.GONE);
             phoneView.setVisibility(View.GONE);
         } else phoneLink.setText(official.getPhone());
+
         if (official.getEmail() == null) {
             emailLink.setVisibility(View.GONE);
             emailView.setVisibility(View.GONE);
         } else emailLink.setText(official.getEmail());
+
         if (official.getWebUrl() == null) {
             websiteView.setVisibility(View.GONE);
             websiteLink.setVisibility(View.GONE);
         } else websiteLink.setText(official.getWebUrl());
+
         Linkify.addLinks(phoneLink, Linkify.ALL);
         Linkify.addLinks(emailLink, Linkify.ALL);
         Linkify.addLinks(websiteLink, Linkify.ALL);
@@ -167,8 +263,10 @@ public class OfficialActivity extends AppCompatActivity {
         }
         else youtube = official.getFacebookId();
     }
-    // implement implicit intents for email, phone, address (geo)
-    // implement methods to hide social media imgs if DNE
+
+    // Politician's image clicked, if successful load -> open PhotoDetail activity
+    public void imgClicked(View v) {
+    }
 
     public void youtubeClicked(View v) {
         String name = youtube; // replace with data provided from download
@@ -188,11 +286,11 @@ public class OfficialActivity extends AppCompatActivity {
 
     public void facebookClicked(View v) {
         String name = fb; // get name from data downloaded
-        String facebook_URL = "https://www.facebook.com/" + name; // replace with data provided from download
+        String facebook_URL = "https://www.facebook.com/" + name;
         String urlToUse;
         PackageManager packageManager = getPackageManager();
         try {
-            int versionCode = packageManager.getPackageInfo("com.facebook.katana", 0).versionCode;
+            long versionCode = packageManager.getPackageInfo("com.facebook.katana", 0).getLongVersionCode();
             if (versionCode >= 3002850) { //newer versions of fb app
                 urlToUse = "fb://facewebmodal/f?href=" + facebook_URL;
             } else { //older versions of fb app

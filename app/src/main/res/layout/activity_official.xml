@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
@@ -83,13 +85,14 @@
 
         <ImageView
             android:id="@+id/politicianImg"
-            android:layout_width="242dp"
+            android:layout_width="211dp"
             android:layout_height="278dp"
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/partyView"
-            app:srcCompat="@drawable/brokenimage" />
+            app:srcCompat="@drawable/placeholder"
+            tools:srcCompat="@drawable/placeholder" />
 
         <ImageView
             android:id="@+id/partyImg"
@@ -154,7 +157,7 @@
             android:layout_marginTop="8dp"
             android:onClick="facebookClicked"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/websiteView"
+            app:layout_constraintTop_toBottomOf="@+id/websiteLink"
             app:srcCompat="@drawable/facebook" />
 
         <ImageView
@@ -166,7 +169,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.246"
             app:layout_constraintStart_toEndOf="@+id/facebookImg"
-            app:layout_constraintTop_toBottomOf="@+id/websiteView"
+            app:layout_constraintTop_toBottomOf="@+id/websiteLink"
             app:srcCompat="@drawable/twitter" />
 
         <ImageView
@@ -177,7 +180,7 @@
             android:onClick="youtubeClicked"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/twitterImg"
-            app:layout_constraintTop_toBottomOf="@+id/websiteView"
+            app:layout_constraintTop_toBottomOf="@+id/websiteLink"
             app:srcCompat="@drawable/youtube" />
 
         <TextView
@@ -211,8 +214,8 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:text="@string/websiteLink"
-            android:textColorLink="@android:color/white"
             android:textColor="@color/white"
+            android:textColorLink="@android:color/white"
             app:layout_constraintStart_toEndOf="@+id/websiteView"
             app:layout_constraintTop_toBottomOf="@+id/emailLink" />
     </androidx.constraintlayout.widget.ConstraintLayout>
