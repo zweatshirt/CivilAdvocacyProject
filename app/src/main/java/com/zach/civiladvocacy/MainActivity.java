@@ -43,7 +43,24 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-// Go to office hours about setting up ic_launcher
+/* CS442 Project 4 | Zachery Linscott */
+
+/* Note to self:
+* Project gathers data about politicians.
+* Links and socials are added for each politician, or 'official'
+* Cards were implemented in the RecyclerView, I wanted to try something new.
+* Testing offline connectivity with the emulator is really a pain.
+* I think if this application were implemented further it could become something
+* really interesting. I just think that the Civic Info API really lacks info about
+* local officials.
+*
+* APIs used: Google Civic Information, Ponopto, Universal Image Loader
+*
+* I think the greatest think I learned from this is to allow cleartext http support
+* in Manifest.xml. Literally spent hours trying to resolve issues.
+*/
+
+// TODO: Test internet connectivity, emulator makes it really annoying to.
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener, View.OnLongClickListener {
@@ -57,47 +74,50 @@ public class MainActivity extends AppCompatActivity implements
     private static String location = "No specified location";
     TextView locationText;
     RecyclerView.LayoutManager layoutManager;
+    Typeface typeface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        typeface = Typeface.createFromAsset(
+                this.getAssets(), "fonts/Roboto-Medium.ttf");
         Objects.requireNonNull(getSupportActionBar()).setTitle("Know Your Government");
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Medium.ttf");
 
+        // 'Initialize' RecyclerView to display Officials
         officialsView = findViewById(R.id.rView);
         layoutManager = new LinearLayoutManager(this);
         officialsView.setLayoutManager(layoutManager);
         adapter = new OfficialListAdapter(officials, this);
         officialsView.setAdapter(adapter);
+
         locationText = findViewById(R.id.locationText);
         locationText.setTypeface(typeface);
+
         mFusedLocationClient = LocationServices
                 .getFusedLocationProviderClient(this);
+
         checkAndDetermineLocation();
 
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        checkAndDetermineLocation();
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        checkAndDetermineLocation();
+//    }
 
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        checkAndDetermineLocation();
-    }
+//    @Override
+//    public void onRestart() {
+//        super.onRestart();
+//        checkAndDetermineLocation();
+//    }
 
     /* OPTIONS MENU SETUP START */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.opt_menu, menu);
-        // change icon colors to white
-
         return true;
     }
 
@@ -156,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -273,10 +292,22 @@ public class MainActivity extends AppCompatActivity implements
     /* RECYCLER VIEW CLICK METHODS */
 
     private void noConnection() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("No Network Connection")
-                .setMessage("Data cannot be loaded without a network connection.");
-        builder.show();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        @SuppressLint("InflateParams")
+        final View view = inflater.inflate(R.layout.no_connection_dialog, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(view);
+        TextView title = view.findViewById(R.id.noConnTitle);
+        TextView desc = view.findViewById(R.id.noConnMsg);
+        title.setTypeface(typeface);
+        desc.setTypeface(typeface);
+        String titleStr = "No Network Connection";
+        String descStr = "Data cannot be accessed or loaded without an internet connection";
+        title.setText(titleStr);
+        desc.setText(descStr);
+
+        AlertDialog alert = builder.create();
+        alert.show();
 
     }
 

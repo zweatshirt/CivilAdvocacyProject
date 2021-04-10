@@ -56,7 +56,8 @@ public class ApiInfoRunnable implements Runnable {
             connection.setRequestMethod("GET");
             connection.connect();
             if (connection.getResponseCode() != HttpsURLConnection.HTTP_OK) {
-                Log.d(TAG, "ApiInfoRunnable: HTTP ResponseCode NOT OK: " + connection.getResponseCode());
+                Log.d(TAG, "ApiInfoRunnable: HTTP ResponseCode NOT OK: "
+                        + connection.getResponseCode());
                 finalResults(null);
                 return;
             }
@@ -83,9 +84,6 @@ public class ApiInfoRunnable implements Runnable {
             // JSON to extract
             JSONObject allInfo = new JSONObject(result);
 
-            // Official object to populate with JSON data
-            Official officialObject = new Official();
-
             // Normalized address, set location in MainActivity to this
             JSONObject normalizedInput = allInfo.getJSONObject("normalizedInput");
             fetchNormalizedLine(normalizedInput);
@@ -98,16 +96,21 @@ public class ApiInfoRunnable implements Runnable {
                 JSONObject officesObj = (JSONObject) offices.get(i);
 
                 String officeTitle = officesObj.getString("name");
-                officialObject.setOfficeTitle(officeTitle);
 
                 // offices array contains indices array officialIndices pointing to 'officials' objects
                 JSONArray officialIndices = officesObj.getJSONArray("officialIndices");
 
                 // maintain lowest index of official to ensure ordering in RecyclerView
                 int lowestIndex = (int) officialIndices.get(0);
-                officialObject.setOfficeIndex(lowestIndex);
 
                 for (int j = 0; j < officialIndices.length(); j++) {
+
+                    // Official object to populate with JSON data
+                    Official officialObject = new Official();
+
+                    officialObject.setOfficeTitle(officeTitle);
+                    officialObject.setOfficeIndex(lowestIndex);
+
 
                     // point to official by using index stored in officialIndices
                     int index = (int) officialIndices.get(j);
@@ -252,11 +255,12 @@ public class ApiInfoRunnable implements Runnable {
     }
 
     private void fetchNormalizedLine(JSONObject normalizedInput) throws JSONException {
+        String normalizedLine1 = null;
+        String normalizedCity = null;
+        String normalizedState = null;
+        String normalizedZip = null;
+
         try {
-            String normalizedLine1 = null;
-            String normalizedCity = null;
-            String normalizedState = null;
-            String normalizedZip = null;
 
             if (!normalizedInput.getString("line1").isEmpty()) {
                 normalizedLine1 = normalizedInput.getString("line1");
@@ -270,6 +274,8 @@ public class ApiInfoRunnable implements Runnable {
             if (!normalizedInput.getString("zip").isEmpty()) {
                 normalizedZip = normalizedInput.getString("zip");
             }
+
+        } finally {
             String finalNormalizedLine = normalizedLine1;
             String finalNormalizedCity = normalizedCity;
             String finalNormalizedState = normalizedState;
@@ -279,7 +285,6 @@ public class ApiInfoRunnable implements Runnable {
             });
         }
     }
-
 
     private String buildLine(JSONObject address) throws JSONException {
         StringBuilder line = new StringBuilder();

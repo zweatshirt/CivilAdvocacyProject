@@ -21,7 +21,7 @@ public class PhotoDetailActivity extends AppCompatActivity {
     TextView detailLocationView;
     ImageView detailPoliticianImg;
     ImageView detailPartyImg;
-    // implement landscape view
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
